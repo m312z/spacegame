@@ -27,6 +27,7 @@ public class GameMap {
 		gooMass = new int[x][y];
 		flowH = new int[x][y];
 		flowV = new int[x][y];
+		power = new int[x][y];
 //		for(int i=0;i<x;i++)
 //		for(int j=0;j<y;j++)
 //			map[i][j] = TileType.EMPTY;
@@ -50,6 +51,7 @@ public class GameMap {
 		gooMass = new int[size[0]][size[1]];
 		flowH = new int[size[0]][size[1]];
 		flowV = new int[size[0]][size[1]];
+		power = new int[size[0]][size[1]];
 		
 		for(int i=0;i<size[0];i++) {
 //		for(int j=0;j<size[1];j++) {
