@@ -3,7 +3,7 @@ package core.game;
 import model.Board;
 import model.building.Building;
 import model.building.BuildingFactory;
-import model.map.TileType;
+import model.building.BuildingType;
 import network.packet.Packet;
 import network.packet.PlayerInputPacket;
 
@@ -19,7 +19,7 @@ public class PacketHandler {
 	public static void applyPacket(Board board, Packet packet) {
 		switch (packet.getType()) {
 		case PLAYERINPUT:
-			String[] command = ((PlayerInputPacket)packet).getCommand().split("_");
+			String[] command = ((PlayerInputPacket)packet).getCommand().split("/");
 			switch(command[0]) {
 				case "GOO":
 					// make some goo
@@ -27,9 +27,15 @@ public class PacketHandler {
 					break;
 				case "B":
 					// build building
-					TileType type = TileType.values()[Integer.parseInt(command[1])];
+					BuildingType type = BuildingType.values()[Integer.parseInt(command[1])];
 					Building b = BuildingFactory.makeBuilding(type, Integer.parseInt(command[2]),Integer.parseInt(command[3]));
 					board.addBuilding(b);
+					break;
+				case "T":
+					// activate/deactivate building
+					Integer[] togPos = new Integer[] {Integer.valueOf(command[1]),Integer.valueOf(command[2])};
+					if(board.getBuildings().containsKey(togPos));
+					board.toggleBuilding(togPos);
 					break;
 				case "R":
 					// build building

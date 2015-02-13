@@ -93,6 +93,8 @@ public class Game extends Screen {
 		
 		// setup GUI / HUD
 		gui = new GameGUI();
+		GameGUI.desiredViewAnchor.x = (Board.BOARD_SIZE[0] - GameGUI.VIEW_SIZE[0])/2;
+		GameGUI.desiredViewAnchor.y = (Board.BOARD_SIZE[1] - GameGUI.VIEW_SIZE[1])/2;
 	}
 	
 	/*-----------*/

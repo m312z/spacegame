@@ -4,13 +4,14 @@ import static core.Frame.SCREEN_SIZE;
 import static gui.GameGUI.VIEW_SIZE;
 import static model.Board.TILE_SIZE;
 import gui.GameGUI;
+import gui.HudFactory;
 import gui.ui.HudElement;
 import gui.ui.HudOverlay;
 
 import java.util.List;
 
 import model.Board;
-import model.map.TileType;
+import model.building.BuildingType;
 import network.packet.PlayerInputPacket;
 
 import org.lwjgl.input.Keyboard;
@@ -31,7 +32,7 @@ public class MouseController extends PlayerController {
 	boolean[] hotMouseUp = new boolean[2];
 	boolean dragging = false;
 	
-	TileType selectedBuilding;
+	BuildingType selectedBuilding;
 	boolean building = false;
 	boolean gooing = false;
 	
@@ -88,24 +89,24 @@ public class MouseController extends PlayerController {
 	 */
 	private void hudInteraction(Board board, HudOverlay overlay) {
 		
-		TileType bt;
+		BuildingType bt;
 		HudElement e;
 		
 		// interacting with the overlay
 		List<String> hudCommands = overlay.pollInput();
 		for(String command: hudCommands) {
-			String[] s = command.split("_");
+			String[] s = command.split("/");
 			switch(s[0]) {
 			case "hideTooltip":
 				// hide building button tool-tip
-				bt = TileType.valueOf(s[1]);
+				bt = BuildingType.valueOf(s[1]);
 				e = overlay.getElement("toolTip_"+bt.name());
 				if(e!=null) e.setVisible(false);
 				break;
 
 			case "showTooltip":
 				// show building button tool-tip
-				bt = TileType.valueOf(s[1]);
+				bt = BuildingType.valueOf(s[1]);
 				e = overlay.getElement("toolTip_"+bt.name());
 				if(e!=null) e.setVisible(true);
 				break;
@@ -113,7 +114,7 @@ public class MouseController extends PlayerController {
 			case "showBuild":
 				// open building category
 				building = false;
-				for(TileType type: TileType.values()) {
+				for(BuildingType type: BuildingType.values()) {
 					e = overlay.getElement("buttonBuild_"+type.name());
 					if(e!=null) e.setVisible(true);
 				}
@@ -122,14 +123,14 @@ public class MouseController extends PlayerController {
 			case "build":
 				// select building to build
 				building = true;
-				selectedBuilding = TileType.valueOf(s[1]);
+				selectedBuilding = BuildingType.valueOf(s[1]);
 				break;
 
 			case "remove":
 				// start deleting buildings
 				building = false;
 				gooing = false;
-				for(TileType type: TileType.values()) {
+				for(BuildingType type: BuildingType.values()) {
 					e = overlay.getElement("buttonBuild_"+type.name());
 					if(e!=null) e.setVisible(false);
 				}
@@ -139,7 +140,7 @@ public class MouseController extends PlayerController {
 				// start deleting buildings
 				building = false;
 				gooing = true;
-				for(TileType type: TileType.values()) {
+				for(BuildingType type: BuildingType.values()) {
 					e = overlay.getElement("buttonBuild_"+type.name());
 					if(e!=null) e.setVisible(false);
 				}
@@ -226,7 +227,7 @@ public class MouseController extends PlayerController {
 			int tileX = (int)(gameCursorPos.x / TILE_SIZE);
 			int tileY = (int) (gameCursorPos.y / TILE_SIZE);
 			
-			if(Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) && board.getMap().getTile(tileX, tileY)!=TileType.GROUND) {
+			if(Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) && board.getMap().getTile(tileX, tileY)!=BuildingType.BASE_HABITAT) {
 //				// toggle building
 //				if(board.getBuildings().get(pos).getType().toggleable) {
 //					PlayerInputPacket packet = new PlayerInputPacket(this, "A_"+selectedBuilding.id+"_"+tileX+"_"+tileY, board.getTime());
@@ -234,15 +235,18 @@ public class MouseController extends PlayerController {
 //				}
 			} else if(building) {
 				// place building	
-				PlayerInputPacket packet = new PlayerInputPacket(this, "B_"+selectedBuilding.id+"_"+tileX+"_"+tileY, board.getTime());
+				PlayerInputPacket packet = new PlayerInputPacket(this, "B/"+selectedBuilding.id+"/"+tileX+"/"+tileY, board.getTime());
 				commands.add(packet);
 			} else if(gooing) {
 				// test things
-				PlayerInputPacket pip = new PlayerInputPacket(this, "GOO_"+tileX+"_"+tileY, board.getTime());
+				PlayerInputPacket pip = new PlayerInputPacket(this, "GOO/"+tileX+"/"+tileY, board.getTime());
 				commands.add(pip);
+			} else if(board.getBuildings().containsKey(new Integer[] {tileX,tileY})) {
+				// building menu
+				overlay.setToolTip(HudFactory.makeBuildingToolTip(board, Mouse.getX(), SCREEN_SIZE[1]-Mouse.getY(), board.getBuildings().get(new Integer[] {tileX,tileY})));
 			} else {
 				// remove building
-				PlayerInputPacket packet = new PlayerInputPacket(this, "R_"+tileX+"_"+tileY, board.getTime());
+				PlayerInputPacket packet = new PlayerInputPacket(this, "R/"+tileX+"/"+tileY, board.getTime());
 				commands.add(packet);
 			}
 			
@@ -253,7 +257,7 @@ public class MouseController extends PlayerController {
 									
 		} else if(!Mouse.isButtonDown(MOUSE_ACT)) {
 			
-		}		
+		}
 	}
 
 	/*---------------------*/

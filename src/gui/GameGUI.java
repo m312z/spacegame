@@ -13,12 +13,8 @@ import java.awt.Color;
 
 import model.Board;
 import model.Player;
-import model.gameobject.Creature;
+import model.building.BuildingType;
 import model.map.FluidSimulator;
-import model.map.TileType;
-
-import org.lwjgl.opengl.GL11;
-
 import phys.Point2D;
 import core.controller.MouseController;
 import core.controller.PlayerController;
@@ -86,7 +82,7 @@ public class GameGUI {
 		
 		drawGoo(board);
 		drawObjects(board);
-		drawMap(board);
+		drawMap(board, controller);
 //		lightGUI.drawLights(board, viewAnchor, 0.75f);
 		
 		// switch back to painters algorithm for HUD
@@ -126,12 +122,14 @@ public class GameGUI {
 	 * @param board
 	 * @param p
 	 */
-	private void drawMap(Board board) {
+	private void drawMap(Board board, PlayerController controller) {
 		
 		float depth_far_ground = 1 - layer_ground/(float)num_layers;
 		float depth_far_wall = 1 - layer_object/(float)num_layers;
 		float depth_distance = 1/(float)num_layers;
 		float tileX, tileY;
+		
+		Integer[] pos = new Integer[2];
 		
 		for(int i=0;i<board.getMap().getSize()[0];i++) {
 			
@@ -144,8 +142,8 @@ public class GameGUI {
 			if(tileY>SCREEN_SIZE[1] || tileY+scale*TILE_SIZE*2<0) continue;
 					
 			// default floor
-			if(board.getMap().getTile(i,j)!=TileType.EMPTY) {
-				OpenGLDraw.bindTexture(TextureLoader.getInstance().getTexture("Plain Block"));
+			if(board.getMap().getTile(i,j)!=BuildingType.EMPTY) {
+				OpenGLDraw.bindTexture(TextureLoader.getInstance().getTexture("Brown Block"));
 				OpenGLDraw.drawTexture(
 						tileX,
 						tileY,
@@ -157,30 +155,42 @@ public class GameGUI {
 			// pick texture
 			switch(board.getMap().getTile(i,j)) {
 			case EMPTY:
-			case GROUND:
-				break;
-			case WALL:
-				OpenGLDraw.bindTexture(TextureLoader.getInstance().getTexture("Plain Block"));
-				break;
-			case REINFORCEDWALL:
-				OpenGLDraw.bindTexture(TextureLoader.getInstance().getTexture("Brown Block"));
+			case BASE_HABITAT:
 				break;
 			default :
-				OpenGLDraw.bindTexture(TextureLoader.getInstance().getTexture("Stone Block"));
+				pos[0] = i; pos[1] = j;
+				if(board.getBuildings().containsKey(pos) && board.getBuildings().get(pos).isActive())
+					OpenGLDraw.bindTexture(TextureLoader.getInstance().getTexture("Stone Block"));
+				else
+					OpenGLDraw.bindTexture(TextureLoader.getInstance().getTexture("Plain Block"));
 				break;
 			}
 			
 			// draw building
-			if(board.getMap().getTile(i,j)!=TileType.EMPTY && board.getMap().getTile(i,j)!=TileType.GROUND) {
-				OpenGLDraw.drawTexture(
-						tileX,
-						scale*(-viewAnchor.y + (j - 1f)*TILE_SIZE),
-						scale*TILE_SIZE, scale*TILE_SIZE*2,
-						depth_far_wall - depth_distance*((j+1)*TILE_SIZE/Board.BOARD_SIZE[1]) );
+			if(board.getMap().getTile(i,j)!=BuildingType.EMPTY && board.getMap().getTile(i,j)!=BuildingType.BASE_HABITAT) {
+				if(((MouseController)controller).isBuilding())
+					OpenGLDraw.drawTexture(
+							tileX,
+							tileY - scale*0.5f*TILE_SIZE,
+							scale*TILE_SIZE,
+							scale*TILE_SIZE*2,
+							depth_far_wall - depth_distance*((j+1)*TILE_SIZE/Board.BOARD_SIZE[1]),
+							0.5f);
+				else
+					OpenGLDraw.drawTexture(
+							tileX,
+							tileY - scale*0.5f*TILE_SIZE,
+							scale*TILE_SIZE,
+							scale*TILE_SIZE*2,
+							depth_far_wall - depth_distance*((j+1)*TILE_SIZE/Board.BOARD_SIZE[1]) );
 				OpenGLDraw.unbindTexture();
 			}
-		}};
-		
+			
+//			FontManager.getFont(FontType.FONT_24).drawString(Color.RED,
+//				(int)(tileX),
+//				(int)(tileY+TILE_SIZE*scale),
+//				""+board.getMap().getLifeSupport()[i][j], 1, -1);
+		}};	
 	}
 	
 	/*--------------*/
@@ -194,48 +204,44 @@ public class GameGUI {
 	 */
 	private void drawObjects(Board board) {
 		
-		float depth_far = 1 - layer_object/(float)num_layers;
-		float depth_distance = 1/(float)num_layers;
-		
-		
+//		float depth_far = 1 - layer_object/(float)num_layers;
+//		float depth_distance = 1/(float)num_layers;	
+//		OpenGLDraw.bindTexture(TextureLoader.getInstance().getTexture("Character"));
 //		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
 //		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
-		OpenGLDraw.bindTexture(TextureLoader.getInstance().getTexture("Character"));
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
-		for(Creature g: board.getCreatures().values()) {
-			
-			int i = (int)(g.getPosition().x / TILE_SIZE);
-			int j = (int) (g.getPosition().y / TILE_SIZE);
-			float top = 0.75f * board.getMap().getGooMass()[i][j]/(float)(2*FluidSimulator.maxMass+FluidSimulator.maxCompress);				
-			if(top>0.75f)top=0.75f;
-			float creatureHeight = (g.getShape().getMaxX() - g.getShape().getMinX())*1.71f;
-			float drawHeight = Math.max(0.0f, creatureHeight - top*TILE_SIZE);
-			
-//			OpenGLDraw.fillRect(Color.RED,
+//		for(Creature g: board.getCreatures().values()) {
+//			
+//			int i = (int)(g.getPosition().x / TILE_SIZE);
+//			int j = (int) (g.getPosition().y / TILE_SIZE);
+//			float top = 0.75f * board.getMap().getGooMass()[i][j]/(float)(2*FluidSimulator.maxMass+FluidSimulator.maxCompress);				
+//			if(top>0.75f)top=0.75f;
+//			float creatureHeight = (g.getShape().getMaxX() - g.getShape().getMinX())*1.71f;
+//			float drawHeight = Math.max(0.0f, creatureHeight - top*TILE_SIZE);
+//			
+////			OpenGLDraw.fillRect(Color.RED,
+////					scale*(-viewAnchor.x + g.getPosition().x + g.getShape().getMinX()),
+////					scale*(-viewAnchor.y + g.getPosition().y - creatureHeight),
+////					scale*( g.getShape().getMaxX() - g.getShape().getMinX()),
+////					scale*( drawHeight ),
+////					depth_far - depth_distance*((g.getPosition().y+g.getShape().getMaxY())/Board.BOARD_SIZE[1]));
+//			OpenGLDraw.drawTexture(
 //					scale*(-viewAnchor.x + g.getPosition().x + g.getShape().getMinX()),
 //					scale*(-viewAnchor.y + g.getPosition().y - creatureHeight),
 //					scale*( g.getShape().getMaxX() - g.getShape().getMinX()),
 //					scale*( drawHeight ),
+//					0,0,
+//					1f,drawHeight/creatureHeight,
 //					depth_far - depth_distance*((g.getPosition().y+g.getShape().getMaxY())/Board.BOARD_SIZE[1]));
-			OpenGLDraw.drawTexture(
-					scale*(-viewAnchor.x + g.getPosition().x + g.getShape().getMinX()),
-					scale*(-viewAnchor.y + g.getPosition().y - creatureHeight),
-					scale*( g.getShape().getMaxX() - g.getShape().getMinX()),
-					scale*( drawHeight ),
-					0,0,
-					1f,drawHeight/creatureHeight,
-					depth_far - depth_distance*((g.getPosition().y+g.getShape().getMaxY())/Board.BOARD_SIZE[1]));
-		}
-			
-		OpenGLDraw.unbindTexture();
-		for(Creature g: board.getCreatures().values())
-			OpenGLDraw.drawPoly(Color.GREEN,
-					scale*(-viewAnchor.x + g.getPosition().x),
-					scale*(-viewAnchor.y + g.getPosition().y),
-					g.getShape(),
-					scale,
-					depth_far - depth_distance*((g.getPosition().y+g.getShape().getMaxY())/Board.BOARD_SIZE[1]));
+//		}
+//			
+//		OpenGLDraw.unbindTexture();
+//		for(Creature g: board.getCreatures().values())
+//			OpenGLDraw.drawPoly(Color.GREEN,
+//					scale*(-viewAnchor.x + g.getPosition().x),
+//					scale*(-viewAnchor.y + g.getPosition().y),
+//					g.getShape(),
+//					scale,
+//					depth_far - depth_distance*((g.getPosition().y+g.getShape().getMaxY())/Board.BOARD_SIZE[1]));
 	}
 	
 	/*-----*/
@@ -324,12 +330,12 @@ public class GameGUI {
 		
 		float tileX, tileY;
 		if(((MouseController)controller).isBuilding()) {
-			for(int i=0;i<board.getMap().getSize()[0];i++) {
+			for(int i=0;i<=board.getMap().getSize()[0];i++) {
 				tileX = scale*(-viewAnchor.x + i*TILE_SIZE);
 				if(tileX>SCREEN_SIZE[0] || tileX+scale*TILE_SIZE<0) continue;
 				OpenGLDraw.fillRect(Pallete.dim_red, tileX, 0, scale*TILE_SIZE/20f, SCREEN_SIZE[1]);
 			}
-			for(int j=0;j<board.getMap().getSize()[1];j++) {
+			for(int j=0;j<=board.getMap().getSize()[1];j++) {
 				tileY = scale*(-viewAnchor.y + j*TILE_SIZE);
 				if(tileY>SCREEN_SIZE[1] || tileY+scale*TILE_SIZE*2<0) continue;
 				OpenGLDraw.fillRect(Pallete.dim_red, 0, tileY, SCREEN_SIZE[0], scale*TILE_SIZE/20f);

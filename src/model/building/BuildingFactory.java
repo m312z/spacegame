@@ -1,22 +1,25 @@
 package model.building;
 
-import model.map.TileType;
 
 
 public class BuildingFactory {
 	
-	public static Building makeBuilding(TileType type, int x, int y) {
+	public static Building makeBuilding(BuildingType type, int x, int y) {
 		
 		// construction
 		Building building;
 		switch (type) {
-		case PUMP: building = new PumpBuilding(TileType.PUMP, x, y); break;
-		default:	building = new Building(type, x, y);
-		}
-		
-		// resource
-		switch (type) {
-		case WALL:
+		case PUMP:
+			building = new PumpBuilding(BuildingType.PUMP, x, y);
+			break;
+		case LIFE_SUPPORT:
+			building = new LifeSupportBuilding(BuildingType.LIFE_SUPPORT, x, y, 10);
+			break;
+		case COMMAND_TOWER:
+			building = new LifeSupportBuilding(BuildingType.COMMAND_TOWER, x, y, 0);
+			break;
+		default:
+			building = new LifeSupportBuilding(BuildingType.LIFE_SUPPORT, x, y, 10);
 			break;
 		}
 		

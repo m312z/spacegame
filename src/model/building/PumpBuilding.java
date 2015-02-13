@@ -3,7 +3,6 @@ package model.building;
 import static model.Board.ADJ_LIST;
 import model.Board;
 import model.map.FluidSimulator;
-import model.map.TileType;
 
 public class PumpBuilding extends Building {
 
@@ -14,8 +13,8 @@ public class PumpBuilding extends Building {
 	float internal;
 	float timer;
 	
-	public PumpBuilding(TileType type, int x, int y) {
-		super(TileType.PUMP, x, y);
+	public PumpBuilding(BuildingType type, int x, int y) {
+		super(BuildingType.PUMP, x, y);
 		internal = 0f;
 		timer = 0.0f;
 		amount = FluidSimulator.minFlow;
@@ -51,7 +50,7 @@ public class PumpBuilding extends Building {
 	}
 
 	@Override
-	public boolean tick(Board board, float dt) {
+	public boolean concreteTick(Board board, float dt) {
 		timer += dt;
 		if(timer > PUMP_START)
 			pump(board, dt);
@@ -81,12 +80,12 @@ public class PumpBuilding extends Building {
 		
 		// make sure everything is empty space
 		if(board.getMap().getTile(inCellX,inCellY).solid
-	    		&& board.getMap().getTile(inCellX,inCellY)!=TileType.GRATING
-	    		&& board.getMap().getTile(inCellX,inCellY)!=TileType.VARGRATING)
+	    		&& board.getMap().getTile(inCellX,inCellY)!=BuildingType.GRATING
+	    		&& board.getMap().getTile(inCellX,inCellY)!=BuildingType.VARIABLE_GRATING)
 			return;
 		if(board.getMap().getTile(outCellX,outCellY).solid
-	    		&& board.getMap().getTile(outCellX,outCellY)!=TileType.GRATING
-	    		&& board.getMap().getTile(outCellX,outCellY)!=TileType.VARGRATING)
+	    		&& board.getMap().getTile(outCellX,outCellY)!=BuildingType.GRATING
+	    		&& board.getMap().getTile(outCellX,outCellY)!=BuildingType.VARIABLE_GRATING)
 			return;
 		
 		// move goo

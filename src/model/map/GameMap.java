@@ -6,12 +6,14 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import model.building.BuildingType;
+
 
 
 public class GameMap {
 	
 	int[] size;
-	TileType[][] map;
+	BuildingType[][] map;
 	
 	// fluids
 	int[][] gooMass;
@@ -19,24 +21,15 @@ public class GameMap {
 	int[][] flowV;
 	
 	// power
-	int[][] power;
+	int[][] lifeSupport;
 	
 	public GameMap(int x, int y) {
 		size = new int[] {x,y};
-		map = new TileType[x][y];
-		gooMass = new int[x][y];
-		flowH = new int[x][y];
-		flowV = new int[x][y];
-//		for(int i=0;i<x;i++)
-//		for(int j=0;j<y;j++)
-//			map[i][j] = TileType.EMPTY;
-//		for(int i=20;i<30;i++)
-//		for(int j=20;j<30;j++)
-//			map[i][j] = TileType.GROUND;
-//		for(int i=20;i<29;i++)
-//			map[i][21] = TileType.WALL;
-//		gooMass[24][20] = 10000;
-		
+		map = new BuildingType[size[0]][size[1]];
+		gooMass = new int[size[0]][size[1]];
+		flowH = new int[size[0]][size[1]];
+		flowV = new int[size[0]][size[1]];
+		lifeSupport = new int[size[0]][size[1]];		
 		readMap("images/map.bmp", map);
 	}
 	
@@ -46,23 +39,18 @@ public class GameMap {
 	 */
 	public GameMap(GameMap gameMap) {
 		size = new int[] {gameMap.size[0],gameMap.size[1]};
-		map = new TileType[size[0]][size[1]];
+		map = new BuildingType[size[0]][size[1]];
 		gooMass = new int[size[0]][size[1]];
 		flowH = new int[size[0]][size[1]];
 		flowV = new int[size[0]][size[1]];
+		lifeSupport = new int[size[0]][size[1]];
 		
 		for(int i=0;i<size[0];i++) {
-//		for(int j=0;j<size[1];j++) {
 			System.arraycopy(gameMap.getMap()[i], 0, map[i], 0, size[1]);
 			System.arraycopy(gameMap.getGooMass()[i], 0, gooMass[i], 0, size[1]);
 			System.arraycopy(gameMap.getGooFlowH()[i], 0, flowH[i], 0, size[1]);
 			System.arraycopy(gameMap.getGooFlowV()[i], 0, flowV[i], 0, size[1]);
-			System.arraycopy(gameMap.getPower()[i], 0, power[i], 0, size[1]);
-//			map[i][j] = gameMap.getTile(i, j);
-//			gooMass[i][j] = gameMap.getGooMass()[i][j];
-//			flowH[i][j] = gameMap.getGooFlowH()[i][j];
-//			flowV[i][j] = gameMap.getGooFlowV()[i][j];
-//		}
+			System.arraycopy(gameMap.getLifeSupport()[i], 0, lifeSupport[i], 0, size[1]);
 		};
 	}
 
@@ -70,7 +58,7 @@ public class GameMap {
 		return new GameMap(this);
 	}
 	
-    public static void readMap(String fileName, TileType[][] map) {
+    public static void readMap(String fileName, BuildingType[][] map) {
     	
 		try {
 			
@@ -85,13 +73,13 @@ public class GameMap {
 			
 				switch(red) {
 				case 0:
-					map[x][y] = TileType.WALL;
+					map[x][y] = BuildingType.WALL;
 					break;
 				case 255:
-					map[x][y] = TileType.GROUND;
+					map[x][y] = BuildingType.BASE_HABITAT;
 					break;
 				default:
-					map[x][y] = TileType.EMPTY;
+					map[x][y] = BuildingType.EMPTY;
 					break;
 				}
 			}};
@@ -108,15 +96,15 @@ public class GameMap {
 		return size;
 	}
 	
-	public TileType getTile(int x, int y) {
+	public BuildingType getTile(int x, int y) {
 		return map[x][y];
 	}
 	
-	public void setTile(int x, int y, TileType tile) {
+	public void setTile(int x, int y, BuildingType tile) {
 		map[x][y] = tile;
 	}
 	
-	public TileType[][] getMap() {
+	public BuildingType[][] getMap() {
 		return map;
 	}
 	
@@ -132,7 +120,7 @@ public class GameMap {
 		return flowV;
 	}
 	
-	public int[][] getPower() {
-		return power;
+	public int[][] getLifeSupport() {
+		return lifeSupport;
 	}
 }

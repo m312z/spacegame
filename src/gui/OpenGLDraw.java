@@ -550,6 +550,46 @@ public class OpenGLDraw {
 	}
 	
 	/**
+	 * Draw a square texture scaled to fit the destination box with depth and alpha
+	 * @param x			The xcoord
+	 * @param y			The ycoord
+	 * @param width		The width of the destination box
+	 * @param height	The height of the destination box
+	 */
+	public static void drawTexture(float x, float y, float width, float height, float depth, float alpha) {
+		
+		if(tex==null) {
+			System.out.println("No texture is bound");
+			return;
+		}
+		
+		// store the current model matrix
+		GL11.glPushMatrix();
+		
+		// translate to the right location and prepare to draw
+		GL11.glTranslatef(x, y, depth);
+		
+		GL11.glColor4f(1,1,1,alpha);
+
+		// draw a box
+	    GL11.glBegin(GL11.GL_QUADS);
+		{
+		    GL11.glTexCoord2f(0, 0);
+		    GL11.glVertex2f(0, 0);
+		    GL11.glTexCoord2f(0,tex.getHeight());
+		    GL11.glVertex2f(0, height);
+		    GL11.glTexCoord2f(tex.getWidth(), tex.getHeight());
+		    GL11.glVertex2f(width,height);
+		    GL11.glTexCoord2f(tex.getWidth(), 0);
+		    GL11.glVertex2f(width,0);
+		}
+		GL11.glEnd();
+		
+		// restore the model view matrix to prevent contamination
+		GL11.glPopMatrix();
+	}
+	
+	/**
 	 * Draw a square texture scaled to fit the destination box with depth
 	 * @param x			The xcoord
 	 * @param y			The ycoord

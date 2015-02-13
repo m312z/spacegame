@@ -2,12 +2,11 @@ package model.building;
 
 import static model.Board.ADJ_LIST;
 import model.Board;
-import model.map.TileType;
 import phys.Point2D;
 
-public class Building {
-		
-	TileType tileType;
+public abstract class Building {
+
+	BuildingType tileType;
 	int x;
 	int y;
 	Point2D pos;
@@ -18,18 +17,30 @@ public class Building {
 	int noStates;
 	int currentState;
 	String[] stateLabels;
+	
+	int gooRequired;
+	int gooDirection;
+	int populationRequired;
 		
-	public Building(TileType type, int x, int y) {
+	public Building(BuildingType type, int x, int y) {
+		
 		this.tileType = type;
 		this.x = x;
 		this.y = y;
 		this.pos = new Point2D((x+0.5f)*Board.TILE_SIZE,(y+0.5f)*Board.TILE_SIZE);
 		this.active = false;
+		
 		this.maxHealth = this.health = 100;
+		this.populationRequired = 0;
+		this.gooRequired = 0;
+		this.gooDirection = 0;
+		
 		this.noStates = 1;
 		this.currentState = 0;
 		this.stateLabels = new String[noStates];
 		stateLabels[0] = "";
+		
+		
 	}
 
 	/*---------*/
@@ -39,11 +50,7 @@ public class Building {
 	/**
 	 * Clone method for synchronization.
 	 */
-	public Building clone() {
-		Building clone = new Building(tileType,x,y);
-		setValues(clone);
-		return clone;
-	}
+	public abstract Building clone();
 	
 	/**
 	 * Set building values, should be called by subclass clone methods
@@ -57,6 +64,10 @@ public class Building {
 		String[] cloneStateLabels = new String[noStates];
 		for(int i=0;i<noStates;i++) cloneStateLabels[i] = stateLabels[i];
 		clone.setStateLabels(cloneStateLabels);
+		
+		clone.setPopulationRequired(populationRequired);
+		clone.setGooRequired(gooRequired);
+		clone.setGooDirection(gooDirection);
 	}
 	
 	/*----------*/
@@ -68,14 +79,23 @@ public class Building {
 	 * @return whether the building should be removed
 	 */
 	public boolean tick(Board board, float dt) {
+		
+		if(active && hasPower(board)) {
+			board.getMap().getGooMass()[x+ADJ_LIST[gooDirection][0]][y+ADJ_LIST[gooDirection][1]] -= gooRequired;
+			return concreteTick(board, dt);
+		} else if(active)
+			deActivate(board);
+		
 		return false;
 	}
+	
+	protected abstract boolean concreteTick(Board board, float dt);
 	
 	/**
 	 * Attempt to activate this tile
 	 * @param board	the model
 	 */
-	public void activate(Board board) {		
+	public void activate(Board board) {
 		if(active) return;
 		active = true;
 	}
@@ -98,11 +118,7 @@ public class Building {
 	/*----------------------*/
 	
 	public boolean hasPower(Board board) {
-		for(int i=0;i<ADJ_LIST.length;i++) {
-			if(board.getMap().getGooMass()[x+ADJ_LIST[i][0]][y+ADJ_LIST[i][1]]>0)
-				return true;
-		}
-		return false;
+		return (board.getMap().getGooMass()[x+ADJ_LIST[gooDirection][0]][y+ADJ_LIST[gooDirection][1]]>gooRequired);
 	}
 		
 	/*--------------*/
@@ -132,7 +148,7 @@ public class Building {
 	/* getters and setters */
 	/*---------------------*/
 	
-	public TileType getTileType() {
+	public BuildingType getTileType() {
 		return tileType;
 	}
 	
@@ -188,5 +204,29 @@ public class Building {
 	
 	public void setNoStates(int noStates) {
 		this.noStates = noStates;
+	}
+	
+	public int getGooRequired() {
+		return gooRequired;
+	}
+	
+	public int getPopulationRequired() {
+		return populationRequired;
+	}
+	
+	public void setPopulationRequired(int populationRequired) {
+		this.populationRequired = populationRequired;
+	}
+	
+	public void setGooRequired(int gooRequired) {
+		this.gooRequired = gooRequired;
+	}
+	
+	public int getGooDirection() {
+		return gooDirection;
+	}
+	
+	public void setGooDirection(int gooDirection) {
+		this.gooDirection = gooDirection;
 	}
 }
