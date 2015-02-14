@@ -1,10 +1,15 @@
 package model.building;
 
 import static model.Board.ADJ_LIST;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import model.Board;
+import model.building.buildingEffect.BuildingEffect;
 import phys.Point2D;
 
-public abstract class Building {
+public class Building {
 
 	BuildingType tileType;
 	int x;
@@ -22,6 +27,8 @@ public abstract class Building {
 	int gooDirection;
 	int populationRequired;
 		
+	List<BuildingEffect> buildingEffects;
+	
 	public Building(BuildingType type, int x, int y) {
 		
 		this.tileType = type;
@@ -40,7 +47,7 @@ public abstract class Building {
 		this.stateLabels = new String[noStates];
 		stateLabels[0] = "";
 		
-		
+		buildingEffects = new ArrayList<BuildingEffect>();
 	}
 
 	/*---------*/
@@ -50,7 +57,11 @@ public abstract class Building {
 	/**
 	 * Clone method for synchronization.
 	 */
-	public abstract Building clone();
+	public Building clone() {
+		Building clone = new Building(tileType, x, y);
+		setValues(clone);
+		return clone;
+	}
 	
 	/**
 	 * Set building values, should be called by subclass clone methods
@@ -68,6 +79,9 @@ public abstract class Building {
 		clone.setPopulationRequired(populationRequired);
 		clone.setGooRequired(gooRequired);
 		clone.setGooDirection(gooDirection);
+		
+		for(BuildingEffect e: buildingEffects)
+			clone.addEffect(e.clone());
 	}
 	
 	/*----------*/
@@ -89,7 +103,11 @@ public abstract class Building {
 		return false;
 	}
 	
-	protected abstract boolean concreteTick(Board board, float dt);
+	private boolean concreteTick(Board board, float dt) {
+		for(BuildingEffect b: buildingEffects)
+			b.tick(board,this,dt);
+		return false;
+	}
 	
 	/**
 	 * Attempt to activate this tile
@@ -97,6 +115,8 @@ public abstract class Building {
 	 */
 	public void activate(Board board) {
 		if(active) return;
+		for(BuildingEffect b: buildingEffects)
+			b.activate(board,this);
 		active = true;
 	}
 	
@@ -106,6 +126,8 @@ public abstract class Building {
 	 */
 	public void deActivate(Board board) {
 		if(!active) return;
+		for(BuildingEffect b: buildingEffects)
+			b.deActivate(board,this);
 		active = false;
 	}
 				
@@ -228,5 +250,9 @@ public abstract class Building {
 	
 	public void setGooDirection(int gooDirection) {
 		this.gooDirection = gooDirection;
+	}
+	
+	public void addEffect(BuildingEffect effect) {
+		buildingEffects.add(effect);
 	}
 }

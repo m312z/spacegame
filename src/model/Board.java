@@ -179,7 +179,8 @@ public class Board {
 	public void addBuilding(Building b) {
 		
 		// check if valid location
-		if(map.getTile(b.getX(),b.getY()) != BuildingType.BASE_HABITAT)
+		if(map.getTile(b.getX(),b.getY()) != BuildingType.BASE_HABITAT
+				&& (map.getTile(b.getX(),b.getY()) != BuildingType.EMPTY || b.getTileType() != BuildingType.BASE_HABITAT))
 			return;
 		
 		map.getMap()[b.getX()][b.getY()] = b.getTileType();

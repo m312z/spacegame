@@ -1,10 +1,11 @@
-package model.building;
+package model.building.buildingEffect;
 
 import static model.Board.ADJ_LIST;
 import model.Board;
-import model.map.FluidSimulator;
+import model.building.Building;
+import model.building.BuildingType;
 
-public class PumpBuilding extends Building {
+public class PumpBuildingEffect extends BuildingEffect {
 
 	static final float PUMP_DURATION = 3000f;
 	static final float PUMP_START = 2000f;
@@ -12,60 +13,41 @@ public class PumpBuilding extends Building {
 	int amount;
 	float internal;
 	float timer;
+	int intake;
+	int output;
 	
-	public PumpBuilding(BuildingType type, int x, int y) {
-		super(BuildingType.PUMP, x, y);
-		internal = 0f;
-		timer = 0.0f;
-		amount = FluidSimulator.minFlow;
-		noStates = 12;
-		currentState = 0;
-		stateLabels = new String[12];
-		stateLabels[0] = "left_to_top";
-		stateLabels[1] = "left_to_right";
-		stateLabels[2] = "left_to_bottom";
-		stateLabels[3] = "top_to_right";
-		stateLabels[4] = "top_to_bottom";
-		stateLabels[5] = "top_to_left";
-		stateLabels[6] = "right_to_bottom";
-		stateLabels[7] = "right_to_left";
-		stateLabels[8] = "right_to_top";
-		stateLabels[9] = "bottom_to_left";
-		stateLabels[10] = "bottom_to_top";
-		stateLabels[11] = "bottom_to_right";
-	}
-
-	/**
-	 * Clone method for synchronization.
-	 */
-	public Building clone() {
-		
-		PumpBuilding clone = new PumpBuilding(tileType,x,y);
-		setValues(clone);
-		
-		clone.setAmount(amount);
-		clone.setInternal(internal);
-		clone.setTimer(timer);
-		return clone;
+	public PumpBuildingEffect(int amount) {
+		this.amount = amount;
+		this.internal = 0;
+		this.timer = 0;
+		this.intake = 0;
+		this.output = 2;
 	}
 
 	@Override
-	public boolean concreteTick(Board board, float dt) {
+	public BuildingEffect clone() {
+		PumpBuildingEffect pbe = new PumpBuildingEffect(amount);
+		pbe.setAmount(amount);
+		pbe.setInternal(internal);
+		pbe.setTimer(timer);
+		pbe.setIntake(intake);
+		pbe.setOutput(output);
+		return pbe;
+	}
+
+	@Override
+	public void tick(Board board, Building b, float dt) {
 		timer += dt;
 		if(timer > PUMP_START)
-			pump(board, dt);
+			pump(board, b, dt);
 		if(timer > PUMP_DURATION)
 			timer -= PUMP_DURATION;
-		return false;
 	}
 	
-	private void pump(Board board, float dt) {
-				
-		if(!hasPower(board)) return;
-		
-		// calculate cells for transfer
-		int intake = currentState/3;
-		int output = (intake + 1 + currentState%3) % 4;
+	private void pump(Board board, Building b, float dt) {
+
+		int x = b.getX();
+		int y = b.getY();
 		
 		int inCellX = x + ADJ_LIST[intake][0];
 		int inCellY = y + ADJ_LIST[intake][1];
@@ -102,28 +84,38 @@ public class PumpBuilding extends Building {
 			}
 		}
 	}
-	
+
+	@Override
+	public void deActivate(Board board, Building b) {
+			
+	}
+
+	@Override
+	public void activate(Board board, Building b) {
+		
+	}
+
 	/*---------------------*/
 	/* getters and setters */
 	/*---------------------*/
-		
-	public int getAmount() {
-		return amount;
-	}
 	
 	public void setAmount(int amount) {
 		this.amount = amount;
 	}
-	
-	public float getInternal() {
-		return internal;
-	}
-	
+
 	public void setInternal(float internal) {
 		this.internal = internal;
 	}
-	
+
 	public void setTimer(float timer) {
 		this.timer = timer;
+	}
+
+	public void setIntake(int intake) {
+		this.intake = intake;
+	}
+
+	public void setOutput(int output) {
+		this.output = output;
 	}
 }
