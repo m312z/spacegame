@@ -1,6 +1,7 @@
 package model.map;
 
 import static model.Board.GRID_SIZE;
+import model.building.BuildingType;
 
 public class FluidSimulator {
 
@@ -29,10 +30,10 @@ public class FluidSimulator {
 		for(int y = 0; y < GRID_SIZE[1]; y++) {
 			map.getGooFlowH()[x][y] = 0;
 			map.getGooFlowV()[x][y] = 0;
-			if (map.getTile(x,y)==TileType.EMPTY
+			if (map.getTile(x,y)==BuildingType.EMPTY
 					|| (map.getTile(x,y).solid
-		    		&& map.getTile(x,y)!=TileType.GRATING
-		    		&& map.getTile(x,y)!=TileType.VARGRATING))
+		    		&& map.getTile(x,y)!=BuildingType.GRATING
+		    		&& map.getTile(x,y)!=BuildingType.VARIABLE_GRATING))
 				new_mass[x][y] = 0;
 			else
 				new_mass[x][y] = old_mass[x][y];
@@ -49,8 +50,8 @@ public class FluidSimulator {
 			// skip solid tiles
 		    if (old_mass[x][y] == 0 ||
 		    		(map.getTile(x,y).solid
-		    		&& map.getTile(x,y)!=TileType.GRATING
-		    		&& map.getTile(x,y)!=TileType.VARGRATING))
+		    		&& map.getTile(x,y)!=BuildingType.GRATING
+		    		&& map.getTile(x,y)!=BuildingType.VARIABLE_GRATING))
 		    	continue;
 		       
 		    // custom push-only flow
@@ -58,15 +59,15 @@ public class FluidSimulator {
 		    flow = 0;
 
 		    // if the current tile is a VARGRATING only minFlow is possible.
-		    vargrating = (map.getTile(x,y) == TileType.VARGRATING);
+		    vargrating = (map.getTile(x,y) == BuildingType.VARIABLE_GRATING);
 		    		    
 		    // left and right
 		    for(int i=-1;i<3;i+=2) {
 		    	tX = x+i;
 			    if( tX>=0 && tX<GRID_SIZE[0] ) {
 			    	if(!map.getTile(tX,y).solid
-				    		|| map.getTile(tX,y)==TileType.GRATING
-				    		|| map.getTile(tX,y)==TileType.VARGRATING) {
+				    		|| map.getTile(tX,y)==BuildingType.GRATING
+				    		|| map.getTile(tX,y)==BuildingType.VARIABLE_GRATING) {
 			    		// equalize the amount of water in this block and it's neighbour
 				        flow = (remaining_mass - map.getGooMass()[tX][y])/viscosity;
 				        if(flow>minFlow) {
@@ -93,8 +94,8 @@ public class FluidSimulator {
 		    	tY = y+i;
 			    if ( tY>=0 && tY<GRID_SIZE[1] ) {
 				    if(!map.getTile(x,tY).solid
-				    		|| map.getTile(x,tY)==TileType.GRATING
-				    		|| map.getTile(x,tY)==TileType.VARGRATING) {
+				    		|| map.getTile(x,tY)==BuildingType.GRATING
+				    		|| map.getTile(x,tY)==BuildingType.VARIABLE_GRATING) {
 				    	// equalize the amount of water in this block and it's neighbour
 				        flow = (remaining_mass - map.getGooMass()[x][tY])/viscosity;
 				        if ( flow > minFlow ) {

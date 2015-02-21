@@ -1,22 +1,28 @@
 package model.building;
 
-import model.map.TileType;
+import model.building.buildingEffect.LifeSupportBuildingEffect;
+import model.building.buildingEffect.PumpBuildingEffect;
+import model.map.FluidSimulator;
+
 
 
 public class BuildingFactory {
 	
-	public static Building makeBuilding(TileType type, int x, int y) {
+	public static Building makeBuilding(BuildingType type, int x, int y) {
 		
 		// construction
-		Building building;
+		Building building = new Building(type, x, y);
 		switch (type) {
-		case PUMP: building = new PumpBuilding(TileType.PUMP, x, y); break;
-		default:	building = new Building(type, x, y);
-		}
-		
-		// resource
-		switch (type) {
-		case WALL:
+		case PUMP:
+			PumpBuildingEffect pbe = new PumpBuildingEffect(10*FluidSimulator.minFlow);
+			building.addEffect(pbe);
+			break;
+		case COMMAND_TOWER:
+		case LIFE_SUPPORT:
+			LifeSupportBuildingEffect lsbe = new LifeSupportBuildingEffect(3);
+			building.addEffect(lsbe);
+			break;
+		default:
 			break;
 		}
 		

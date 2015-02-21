@@ -4,15 +4,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import model.building.Building;
-import model.gameobject.Creature;
+import model.building.BuildingType;
+import model.gameobject.Cart;
 import model.map.FluidSimulator;
 import model.map.GameMap;
-import model.map.Light;
-import model.map.TileType;
 import utils.IntegerArrayComparitor;
 
 /**
@@ -51,11 +49,17 @@ public class Board {
 	
 	/* model */
 	GameMap map;
-	ArrayList<Light> lights;
+	List<Cart> carts;
+	List<Cart> addCarts;
 	
-	Map<String,Creature> creatures;
-	List<Creature> addCreatures;
-	int creatureCount;
+//	ArrayList<Light> lights;
+	
+//	Map<String,Creature> creatures;
+//	List<Creature> addCreatures;
+//	int creatureCount;
+	
+	int populationCapacity;
+	int population;
 	
 	/* buildings */
 	Map<Integer[], Building> buildings;
@@ -66,10 +70,16 @@ public class Board {
 	 */
 	public Board() {
 		map = new GameMap(GRID_SIZE[0],GRID_SIZE[1]);
-		lights = new ArrayList<Light>();
+
 		buildings = new TreeMap<Integer[], Building>(IntegerArrayComparitor.getInstance());
-		creatures = new TreeMap<String, Creature>();
-		addCreatures = new ArrayList<Creature>();
+		for(Building b: GameMap.startBuildings) {
+			buildings.put(new Integer[] {b.getX(), b.getY()},b);
+			b.place(this);
+			b.activate(this);
+		}
+		
+		carts = new ArrayList<Cart>();
+		addCarts = new ArrayList<Cart>();
 	}
 	
 	/** 
@@ -78,27 +88,31 @@ public class Board {
 	 */
 	public Board(GameMap map) {
 		this.map = map;
-		lights = new ArrayList<Light>();
 		buildings = new TreeMap<Integer[], Building>(IntegerArrayComparitor.getInstance());
-		creatures = new TreeMap<String, Creature>();
-		addCreatures = new ArrayList<Creature>();
+		carts = new ArrayList<Cart>();
+		addCarts = new ArrayList<Cart>();
 	}
 			
 	/* COPY METHOD */
 	public Board clone() {
 		
 		Board board = new Board(map.clone());
-		board.setCreatureCount(creatureCount);
+//		board.setCreatureCount(creatureCount);
 
 		// timers
 		board.setTime(time);
 		board.setGooTimer(gooTimer);
 		
+		// variables
+		board.setPopulation(population);
+		board.setPopulationCapacity(populationCapacity);
+
 		// lists
-		for(Light l: lights) board.getLights().add(l.clone());
+//		for(Light l: lights) board.getLights().add(l.clone());
 		for(Integer[] key: buildings.keySet()) board.getBuildings().put(key,buildings.get(key).clone());
-		for(Creature c: addCreatures) board.getAddCreatures().add(c.clone());
-		for(String mid: creatures.keySet()) board.getCreatures().put(mid, creatures.get(mid).clone());
+		for(Cart c: addCarts) board.getAddCarts().add(c.clone());
+		for(Cart c: carts) board.getCarts().add(c.clone());
+//		for(String mid: creatures.keySet()) board.getCreatures().put(mid, creatures.get(mid).clone());
 		
 		return board;
 	}
@@ -149,23 +163,18 @@ public class Board {
 				Building b = buildings.get(iit.next());
 				b.tick(this, sdt);
 			}
-
-			// tick creatures
-			Iterator<Entry<String, Creature>> cit = creatures.entrySet().iterator();
+			
+			// tick carts
+			Iterator<Cart> cit = carts.iterator();
 			while(cit.hasNext()) {
-				Entry<String, Creature> entry = cit.next();
-				Creature c = entry.getValue();
-				c.tick(this, sdt);
-				if(c.isDead())
-					cit.remove();
+				Cart c = cit.next();
+				c.move(this, dt);
 			}
 			
-			// add creatures
-			for(Creature m: addCreatures) {
-				creatures.put(m.getName()+"_"+creatureCount, m);
-				creatureCount++;
-			}
-			addCreatures.clear();
+			// add carts
+			for(Cart c: addCarts)
+				carts.add(c);
+			addCarts.clear();
 		}
 	}
 	
@@ -179,20 +188,14 @@ public class Board {
 	 */
 	public void addBuilding(Building b) {
 		
-		// TODO remove debug
-		Integer[] position = {b.getX(),b.getY()};
-		if(buildings.containsKey(position)) {
-			Building b1 = buildings.get(position);
-			b1.setCurrentState((b1.getCurrentState()+1)%b1.getStateLabels().length);
-		}
-		
 		// check if valid location
-		if(map.getTile(b.getX(),b.getY()) != TileType.GROUND)
+		if(map.getTile(b.getX(),b.getY()) != BuildingType.BASE_HABITAT
+				&& (map.getTile(b.getX(),b.getY()) != BuildingType.EMPTY || b.getTileType() != BuildingType.BASE_HABITAT))
 			return;
 		
 		map.getMap()[b.getX()][b.getY()] = b.getTileType();
 		
-		if(b.getTileType().hasTick) {
+		if(b.getTileType().hasBuilding) {
 			Integer[] pos = new Integer[] {b.getX(), b.getY()};
 			buildings.put(pos, b);
 		}
@@ -212,7 +215,7 @@ public class Board {
 			b.remove(this);
 			buildings.remove(position);
 		}
-		map.getMap()[position[0]][position[1]] = TileType.GROUND;
+		map.getMap()[position[0]][position[1]] = BuildingType.BASE_HABITAT;
 	}
 	
 	/**
@@ -248,23 +251,31 @@ public class Board {
 		return map;
 	}
 
-	public ArrayList<Light> getLights() {
-		return lights;
-	}
-	
 	public Map<Integer[], Building> getBuildings() {
 		return buildings;
 	}
-	
-	public Map<String, Creature> getCreatures() {
-		return creatures;
+
+	public int getPopulation() {
+		return population;
 	}
 	
-	public List<Creature> getAddCreatures() {
-		return addCreatures;
+	public void setPopulation(int population) {
+		this.population = population;
 	}
 	
-	public void setCreatureCount(int creatureCount) {
-		this.creatureCount = creatureCount;
+	public int getPopulationCapacity() {
+		return populationCapacity;
+	}
+	
+	public void setPopulationCapacity(int populationCapacity) {
+		this.populationCapacity = populationCapacity;
+	}
+	
+	public List<Cart> getCarts() {
+		return carts;
+	}
+	
+	public List<Cart> getAddCarts() {
+		return addCarts;
 	}
 }

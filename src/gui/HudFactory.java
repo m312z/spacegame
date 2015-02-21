@@ -16,7 +16,7 @@ import java.util.List;
 import model.Board;
 import model.Player.PlayerType;
 import model.building.Building;
-import model.map.TileType;
+import model.building.BuildingType;
 import phys.Point2D;
 import phys.Shape;
 
@@ -43,7 +43,7 @@ public class HudFactory {
 	private static HudOverlay makeBuilderOverlay() {
 				
 		HudOverlay builderOverlay = new HudOverlay();
-		float hs = SCREEN_SIZE[1]/16;
+		float hs = SCREEN_SIZE[1]/32;
 		float eps = 2;//hs/16f; 
 				
 		Shape bs = new Shape(new Point2D[] {
@@ -66,15 +66,15 @@ public class HudFactory {
 			buildButton.addCommand(InteractionType.MOUSE_DOWN, "showBuild");
 			builderOverlay.addElement(buildButton);
 			int j=0;
-			for(TileType type: TileType.values()) {
+			for(BuildingType type: BuildingType.values()) {
 				
 //				if(type.category!=gc) continue;
 				
 				// button
 				buildButton = new ButtonElement("buttonBuild_"+type.name(),bs, new Point2D(hs*3 + eps,(2*hs+eps)*(j+1)), Color.BLACK, Pallete.unset, type.name(), type.name());
-				buildButton.addCommand(InteractionType.MOUSE_DOWN, "build_"+type.name());
-				buildButton.addCommand(InteractionType.MOUSE_OVER, "showTooltip_"+type.name());
-				buildButton.addCommand(InteractionType.MOUSE_OFF, "hideTooltip_"+type.name());
+				buildButton.addCommand(InteractionType.MOUSE_DOWN, "build/"+type.name());
+				buildButton.addCommand(InteractionType.MOUSE_OVER, "showTooltip/"+type.name());
+				buildButton.addCommand(InteractionType.MOUSE_OFF, "hideTooltip/"+type.name());
 				if(type.equals("")) {
 					TextElement buttonText = new TextElement("buildButtonText",bs, new Point2D(0,0), type.name(), FontType.FONT_24);
 					buildButton.addElement(buttonText);
@@ -83,7 +83,7 @@ public class HudFactory {
 				builderOverlay.addElement(buildButton);
 				
 				// tool-tip
-				HudElement btt = makeBuildingTooTip(type);
+				HudElement btt = makeBuildingToolTip(type);
 				btt.getPos().x = 2*(hs*2 + eps);
 				btt.getPos().y = (2*hs+eps)*(j+1) - hs;
 				btt.setName("toolTip_"+type.name());
@@ -106,7 +106,7 @@ public class HudFactory {
 		return builderOverlay;
 	}
 	
-	public static HudElement makeBuildingTooTip(TileType type) {
+	public static HudElement makeBuildingToolTip(BuildingType type) {
 		
 		FontType fontType = FontType.FONT_24;
 		TrueTypeFont font = FontManager.getFont(fontType);
@@ -148,7 +148,7 @@ public class HudFactory {
 		return tip;
 	}
 	
-	public static HudElement makeBuildingTooTip(Board board, float x, float y, Building building) {
+	public static HudElement makeBuildingToolTip(Board board, float x, float y, Building building) {
 		
 		FontType fontType = FontType.FONT_24;
 		TrueTypeFont font = FontManager.getFont(fontType);

@@ -1,4 +1,4 @@
-# To set up in Eclipse
+### To set up in Eclipse
 
 * Create a new project.
 * Clone the repository, so that "src/" is in the project folder.

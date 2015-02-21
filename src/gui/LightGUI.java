@@ -21,9 +21,9 @@ import static org.lwjgl.opengl.GL11.glGenTextures;
 import static org.lwjgl.opengl.GL11.glTexImage2D;
 import static org.lwjgl.opengl.GL11.glTexParameterf;
 import model.Board;
+import model.building.BuildingType;
 import model.map.GameMap;
 import model.map.Light;
-import model.map.TileType;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
@@ -112,9 +112,9 @@ public class LightGUI {
 		}
 		
 		// draw lights
-		for(Light l: board.getLights()) {
-			drawLight(board, l);
-		}
+//		for(Light l: board.getLights()) {
+//			drawLight(board, l);
+//		}
 		
 		// switch back to screen buffer
 		glEnable(GL_TEXTURE_2D);
@@ -144,6 +144,7 @@ public class LightGUI {
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private void drawLight(Board board, Light light) {
 		
 		// switch to shadow buffer
@@ -227,7 +228,7 @@ public class LightGUI {
 		for(float j=-light.getDistance()-TILE_SIZE;j<light.getDistance()+TILE_SIZE;j+=TILE_SIZE) {
 			cell[0] = (int) ((light.getPos().x+i)/TILE_SIZE);
 			cell[1] = (int) ((light.getPos().y+j)/TILE_SIZE);
-			TileType tile = map.getTile(cell[0],cell[1]);
+			BuildingType tile = map.getTile(cell[0],cell[1]);
 			if(tile.solid) {
 				for(int v=0;v<4;v++)
 					drawEdgeShadow(
