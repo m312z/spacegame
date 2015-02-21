@@ -16,6 +16,18 @@ public abstract class GameObject {
 		this.shape = shape;
 	}
 	
+	public void writeAttributesToClone(GameObject clone) {
+		
+		// gameObject attributes
+		clone.setShape(shape.clone());
+		clone.getPosition().x = position.x;
+		clone.getPosition().y = position.y;
+		clone.getDirection().x = direction.x;
+		clone.getDirection().y = direction.y;
+		clone.setSpeed(speed);
+		
+	}
+	
 	public Point2D getDirection() {
 		return direction;
 	}

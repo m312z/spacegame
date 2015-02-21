@@ -3,14 +3,19 @@ package model.map;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import model.building.Building;
+import model.building.BuildingFactory;
 import model.building.BuildingType;
 
-
-
 public class GameMap {
+
+	// buildings from loading
+	public static List<Building> startBuildings = new ArrayList<Building>();
 	
 	int[] size;
 	BuildingType[][] map;
@@ -22,14 +27,14 @@ public class GameMap {
 	
 	// power
 	int[][] lifeSupport;
-	
+		
 	public GameMap(int x, int y) {
 		size = new int[] {x,y};
 		map = new BuildingType[size[0]][size[1]];
 		gooMass = new int[size[0]][size[1]];
 		flowH = new int[size[0]][size[1]];
 		flowV = new int[size[0]][size[1]];
-		lifeSupport = new int[size[0]][size[1]];		
+		lifeSupport = new int[size[0]][size[1]];
 		readMap("images/map.bmp", map);
 	}
 	
@@ -77,6 +82,10 @@ public class GameMap {
 					break;
 				case 255:
 					map[x][y] = BuildingType.BASE_HABITAT;
+					break;
+				case 163:
+					map[x][y] = BuildingType.COMMAND_TOWER;
+					startBuildings.add(BuildingFactory.makeBuilding(BuildingType.COMMAND_TOWER, x, y));
 					break;
 				default:
 					map[x][y] = BuildingType.EMPTY;

@@ -11,7 +11,8 @@ public enum BuildingType {
 	GRATING(			5,  true,	false),
 	VARIABLE_GRATING(	6,  true,	false),
 	LIFE_SUPPORT(		7, 	true, 	true),
-	COMMAND_TOWER(		8, 	true, 	true);
+	COMMAND_TOWER(		8, 	true, 	true),
+	RAIL(				9,	false,	true);
 	
 	public int id;
 	public boolean solid;

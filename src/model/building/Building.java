@@ -93,7 +93,6 @@ public class Building {
 	 * @return whether the building should be removed
 	 */
 	public boolean tick(Board board, float dt) {
-		
 		if(active && hasPower(board)) {
 			board.getMap().getGooMass()[x+ADJ_LIST[gooDirection][0]][y+ADJ_LIST[gooDirection][1]] -= gooRequired;
 			return concreteTick(board, dt);
@@ -140,7 +139,7 @@ public class Building {
 	/*----------------------*/
 	
 	public boolean hasPower(Board board) {
-		return (board.getMap().getGooMass()[x+ADJ_LIST[gooDirection][0]][y+ADJ_LIST[gooDirection][1]]>gooRequired);
+		return (board.getMap().getGooMass()[x+ADJ_LIST[gooDirection][0]][y+ADJ_LIST[gooDirection][1]]>=gooRequired);
 	}
 		
 	/*--------------*/
